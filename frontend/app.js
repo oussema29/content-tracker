@@ -85,14 +85,13 @@ let draggedTaskId = null;
  * Replace this function body with real fetch() once the API is running.
  */
 function mockFetch(url, options = {}) {
-  return new Promise((_, reject) => {
-    // Simulate network timeout before refusing
-    setTimeout(() => {
-      reject(new Error(
-        `Cannot connect to backend (${(options.method || 'GET').toUpperCase()} ${url}). ` +
-        'Is the FastAPI server running on localhost:8000?'
-      ));
-    }, 400 + Math.random() * 150);
+  return fetch(`http://localhost:8000${url}`, options).then(async (response) => {
+    let data = null;
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      data = await response.json();
+    }
+    return { ok: response.ok, status: response.status, data };
   });
 }
 
@@ -175,7 +174,9 @@ function canCurrentRoleAdvance(task) {
    Rendering
 ════════════════════════════════════════════════════════ */
 
-function renderBoard() {
+async function renderBoard() {
+  tasks = await api.getTasks();
+
   const board = document.getElementById('board');
   board.innerHTML = '';
 
