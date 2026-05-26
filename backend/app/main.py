@@ -1,4 +1,5 @@
-﻿from fastapi import FastAPI
+﻿import uvicorn
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.tasks import router as tasks_router
@@ -20,6 +21,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:8000",
         "http://127.0.0.1:8000",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
         "http://localhost:5500",
         "http://127.0.0.1:5500",
         "null",                     # file:// origin sent by browsers
@@ -41,3 +44,13 @@ app.include_router(tasks_router)
 @app.get("/health", tags=["meta"])
 async def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+def start() -> None:
+    """Entry point used by `uv run start` — always binds to settings.port (default 8000)."""
+    uvicorn.run(
+        "app.main:app",
+        host="127.0.0.1",
+        port=settings.port,
+        reload=True,
+    )
